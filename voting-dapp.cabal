@@ -1,0 +1,142 @@
+Cabal-Version:      2.4
+Name:               voting-dapp
+Version:            0.1.0.0
+Author:             dcSpark
+Maintainer:         github@dcspark.io
+Build-Type:         Simple
+Copyright:          © 2021 dcSpark
+License:            NONE
+License-files:      LICENSE
+
+flag defer-plugin-errors
+    description:
+        Defer errors from the plugin, useful for things like Haddock that can't handle it.
+    default: True
+    manual: True
+
+flag erase-costly-newtypes
+    description:
+        Newtypes aren't zero-cost in Plutus (especially on script size).
+        This flag enables type erasure for production
+    default: False
+    manual: True
+
+-- flag erase-debug-messages
+--     description:
+--         Debug messages take some space in on-chain scripts.
+--         This flags removes them.
+--     default: False
+--     manual: True
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Onchain, Offchain, Utils
+  build-depends:       aeson
+                     , base
+                     , containers
+                     , plutus-core
+                     , plutus-contract
+                     , plutus-ledger
+                     , plutus-ledger-api
+                     , plutus-ledger-constraints
+                     , plutus-tx
+                     , plutus-tx-plugin
+                     , text
+                     , playground-common
+                     , lens
+
+  default-language:   Haskell2010
+  default-extensions: DataKinds
+                      DeriveAnyClass
+                      DeriveGeneric
+                      DerivingStrategies
+                      ExplicitForAll
+                      FunctionalDependencies
+                      GADTs
+                      MultiParamTypeClasses
+                      NamedFieldPuns
+                      OverloadedStrings
+                      PolyKinds
+                      KindSignatures
+                      StandaloneDeriving
+                      TemplateHaskell
+                      TypeApplications
+                      TypeFamilies
+                      TypeOperators
+                      MultiParamTypeClasses
+                      ScopedTypeVariables
+                      StandaloneKindSignatures
+                      LambdaCase
+  ghc-options:   -Wall -Wnoncanonical-monad-instances -Wunused-packages
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+
+test-suite          voting-dapp-test
+  type:             exitcode-stdio-1.0
+  main-is:          Tests.hs
+  hs-source-dirs:   test, src
+  other-modules:    Endpoints, BasicScenarios, MaliciousEndpoints, Onchain, Offchain, Utils
+  build-depends:     base
+                    , voting-dapp
+                    , aeson
+                    , cardano-api
+                    , cardano-crypto
+                    , cardano-crypto-class
+                    , bytestring
+                    , containers
+                    , freer-extras
+                    , plutus-core
+                    , plutus-contract
+                    , plutus-ledger
+                    , plutus-ledger-api
+                    , plutus-ledger-constraints
+                    , plutus-tx
+                    , plutus-tx-plugin
+                    , text
+                    , playground-common
+                    , freer-simple
+                    , foldl
+                    , streaming
+                    , QuickCheck
+                    , tasty
+                    , tasty-hunit
+                    , tasty-hedgehog
+                    , tasty-golden
+                    , tasty-quickcheck
+                    , mtl
+                    , lens
+                    , data-default
+                    , tasty
+  default-language:   Haskell2010
+  default-extensions: DataKinds
+                      DeriveAnyClass
+                      DeriveGeneric
+                      DerivingStrategies
+                      ExplicitForAll
+                      FunctionalDependencies
+                      GADTs
+                      MultiParamTypeClasses
+                      NamedFieldPuns
+                      OverloadedStrings
+                      PolyKinds
+                      KindSignatures
+                      StandaloneDeriving
+                      TemplateHaskell
+                      TypeApplications
+                      TypeFamilies
+                      TypeOperators
+                      MultiParamTypeClasses
+                      ScopedTypeVariables
+                      StandaloneKindSignatures
+                      LambdaCase
+  ghc-options:        -Wall
+                      -Wcompat
+                      -Wincomplete-record-updates
+                      -Wincomplete-uni-patterns
+                      -Wredundant-constraints
+                      -- -Werror
+                      -Wpartial-fields
+                      -fobject-code
+                      -fno-ignore-interface-pragmas
+                      -fno-omit-interface-pragmas

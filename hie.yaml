@@ -1,0 +1,6 @@
+cradle:
+  cabal:
+    - component: "lib:voting-dapp"
+      path: "./src/"
+    - component: "test:voting-dapp-test"
+      path: "./test/"
