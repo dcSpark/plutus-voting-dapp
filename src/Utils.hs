@@ -15,21 +15,7 @@ import Ledger.Value qualified as Value
 import Onchain
 import Playground.Contract
 import Plutus.Contract
-import Plutus.Contract.Types (AsContractError (_ConstraintResolutionError))
 import PlutusTx qualified
-import PlutusTx.Prelude
-  ( Applicative (pure),
-    Either,
-    Maybe (..),
-    const,
-    either,
-    error,
-    fromMaybe,
-    maybe,
-    ($),
-    (.),
-    (>>=),
-  )
 import PlutusTx.Prelude hiding ((<>))
 import Prelude qualified
 

@@ -44,12 +44,12 @@ useCaseTests =
 
 voteWithQuorum :: Trace.EmulatorTrace ()
 voteWithQuorum = do
-  h1 <- Trace.activateContractWallet w1 $ contract
-  h2 <- Trace.activateContractWallet w2 $ contract
-  h3 <- Trace.activateContractWallet w3 $ contract
-  h4 <- Trace.activateContractWallet w4 $ contract
-  h5 <- Trace.activateContractWallet w5 $ contract
-  h6 <- Trace.activateContractWallet w6 $ contract
+  h1 <- Trace.activateContractWallet w1 contract
+  h2 <- Trace.activateContractWallet w2 contract
+  h3 <- Trace.activateContractWallet w3 contract
+  h4 <- Trace.activateContractWallet w4 contract
+  h5 <- Trace.activateContractWallet w5 contract
+  h6 <- Trace.activateContractWallet w6 contract
   void $ Trace.waitNSlots 1
   Trace.callEndpoint @"1-setup treasury" h1 $ Ada.lovelaceValueOf 1_000_000_000 <> specialTokenValue
   void $ Trace.waitNSlots 1
@@ -68,12 +68,12 @@ voteWithQuorum = do
 voteWithNoQuorum :: Trace.EmulatorTrace ()
 voteWithNoQuorum = do
   let evilContract = ME.endpoints voteCfg
-  h1 <- Trace.activateContractWallet w1 $ contract
-  h2 <- Trace.activateContractWallet w2 $ contract
-  h3 <- Trace.activateContractWallet w3 $ contract
-  h4 <- Trace.activateContractWallet w4 $ contract
-  h5 <- Trace.activateContractWallet w5 $ contract
-  h6 <- Trace.activateContractWallet w6 $ evilContract
+  h1 <- Trace.activateContractWallet w1 contract
+  h2 <- Trace.activateContractWallet w2 contract
+  h3 <- Trace.activateContractWallet w3 contract
+  h4 <- Trace.activateContractWallet w4 contract
+  h5 <- Trace.activateContractWallet w5 contract
+  h6 <- Trace.activateContractWallet w6 evilContract
   void $ Trace.waitNSlots 1
   Trace.callEndpoint @"1-setup treasury" h1 $ Ada.lovelaceValueOf 1_000_000_000 <> specialTokenValue
   void $ Trace.waitNSlots 1

@@ -4,7 +4,6 @@
 
 module Offchain where
 
-import Control.Lens (review)
 import Control.Monad (forever, void)
 import Data.Foldable qualified as Foldable
 import Data.Map qualified as Map
@@ -66,7 +65,7 @@ tally vCfg@VotingConfig {voteAsset, minQuorum} = do
       if count >= minQuorum
         then do
           winningAddress <- extractAddress (snd $ head winningVotes)
-          let Just voteScriptHash = toValidatorHash $ voteScriptAddress vCfg
+          let voteScriptHash = fromJust $ toValidatorHash $ voteScriptAddress vCfg
 
               -- collect from the winning utxos and the treasury
               txVotesUtxos = collectFromScript winningUtxos ()
@@ -81,6 +80,7 @@ tally vCfg@VotingConfig {voteAsset, minQuorum} = do
               payWinner (Just winningPkh) _ = mustPayToPubKey (PaymentPubKeyHash winningPkh) totalTreasury
               -- We use an empty datum, but we can require a datum from the voters or lookup an existing datum
               payWinner _ (Just winningScript) = mustPayToOtherScript winningScript unitDatum totalTreasury
+              payWinner _ _ = error ()
 
               txPayWinner = payWinner (toPubKeyHash winningAddress) (toValidatorHash winningAddress)
 

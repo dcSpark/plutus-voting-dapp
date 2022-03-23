@@ -70,7 +70,7 @@ library
   ghc-options:   -Wall -Wnoncanonical-monad-instances -Wunused-packages
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
-                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas -fplugin-opt PlutusTx.Plugin:defer-errors
 
 test-suite          voting-dapp-test
   type:             exitcode-stdio-1.0
@@ -135,8 +135,9 @@ test-suite          voting-dapp-test
                       -Wincomplete-record-updates
                       -Wincomplete-uni-patterns
                       -Wredundant-constraints
-                      -- -Werror
+                      -Werror
                       -Wpartial-fields
                       -fobject-code
                       -fno-ignore-interface-pragmas
                       -fno-omit-interface-pragmas
+                      -fplugin-opt PlutusTx.Plugin:defer-errors

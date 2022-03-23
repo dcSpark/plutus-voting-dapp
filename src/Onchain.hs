@@ -23,6 +23,7 @@ import PlutusTx.Prelude hiding ((<>))
 {-# INLINEABLE fromJust #-}
 fromJust :: Maybe a -> a
 fromJust (Just a) = a
+fromJust _ = error ()
 
 {-# INLINEABLE datumToData #-}
 datumToData :: (PlutusTx.FromData a) => Datum -> Maybe a
@@ -111,7 +112,9 @@ treasuryScript VotingConfig {voteAsset, minQuorum} _ _ ctx@ScriptContext {script
       -- first, filter the wallet that pays the fee
       onlyScriptsUtxos = filter (isJust . validatorHashOf) txInfoInputs
       -- the result should be a list of votes (all the for the same address and amount) and one input from the treasury
-      ([treasury], allVotes@(aVote : _)) = partition (\txInInfo -> Just (Validation.ownHash ctx) == validatorHashOf txInInfo) onlyScriptsUtxos
+      (treasury, allVotes, aVote) = case partition (\txInInfo -> Just (Validation.ownHash ctx) == validatorHashOf txInInfo) onlyScriptsUtxos of
+        ([treasury'], allVotes'@(aVote' : _)) -> (treasury', allVotes', aVote')
+        _ -> error ()
       -- extract the datum from the first vote
       aVoteDatum = fromJust (Validation.findDatum (datumHashOf aVote) txInfo)
 

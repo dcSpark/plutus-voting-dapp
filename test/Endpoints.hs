@@ -19,26 +19,34 @@ import Control.Lens
 import Control.Monad hiding (fmap)
 import Data.Default (Default (..))
 import Data.Map qualified as Map
+import Data.Text qualified as T
 import Ledger.Ada as Ada
 import Ledger.Value qualified as Value
 import Offchain as OC
 import Onchain (VotingConfig (..))
+import Plutus.Contract (Contract)
 import Plutus.Contract.Test
 import Plutus.Trace.Emulator qualified as Trace
 import Test.Tasty
 import Wallet.Emulator.Wallet (mockWalletAddress)
 
 -- minimum number of agreement votes required
+minQuorum' :: Integer
 minQuorum' = 4
 
+currency :: Value.CurrencySymbol
 currency = "66"
 
+token :: Value.TokenName
 token = "VotingToken"
 
+voteAsset' :: Value.AssetClass
 voteAsset' = Value.assetClass currency token
 
+aVoteValue :: Value.Value
 aVoteValue = Value.assetClassValue voteAsset' 1
 
+specialTokenValue :: Value.Value
 specialTokenValue = Value.singleton currency "CONTROL_TOKEN" 1
 
 emCfg :: Trace.EmulatorConfig
@@ -46,8 +54,10 @@ emCfg = Trace.EmulatorConfig (Left $ Map.fromList ((w1, v <> specialTokenValue) 
   where
     v = Ada.lovelaceValueOf 1_000_000_000_000 <> aVoteValue
 
+voteCfg :: VotingConfig
 voteCfg = VotingConfig {voteAsset = voteAsset', minQuorum = minQuorum'}
 
+contract :: Contract () VotingSchema T.Text ()
 contract = OC.endpoints voteCfg
 
 endpointTests :: TestTree
@@ -73,15 +83,15 @@ endpointTests =
 
 buildTreasuryTrace :: Trace.EmulatorTrace ()
 buildTreasuryTrace = do
-  h1 <- Trace.activateContractWallet w1 $ contract
+  h1 <- Trace.activateContractWallet w1 contract
   void $ Trace.waitNSlots 1
   Trace.callEndpoint @"1-setup treasury" h1 $ Ada.lovelaceValueOf 1_000_000_000 <> specialTokenValue
   void $ Trace.waitNSlots 1
 
 singleVoteTrace :: Trace.EmulatorTrace ()
 singleVoteTrace = do
-  h1 <- Trace.activateContractWallet w1 $ contract
-  h2 <- Trace.activateContractWallet w2 $ contract
+  h1 <- Trace.activateContractWallet w1 contract
+  h2 <- Trace.activateContractWallet w2 contract
   void $ Trace.waitNSlots 1
   Trace.callEndpoint @"1-setup treasury" h1 $ Ada.lovelaceValueOf 1_000_000_000 <> specialTokenValue
   void $ Trace.waitNSlots 1
@@ -90,8 +100,8 @@ singleVoteTrace = do
 
 returnVoteTrace :: Trace.EmulatorTrace ()
 returnVoteTrace = do
-  h1 <- Trace.activateContractWallet w1 $ contract
-  h2 <- Trace.activateContractWallet w2 $ contract
+  h1 <- Trace.activateContractWallet w1 contract
+  h2 <- Trace.activateContractWallet w2 contract
   void $ Trace.waitNSlots 1
   Trace.callEndpoint @"1-setup treasury" h1 $ Ada.lovelaceValueOf 1_000_000_000 <> specialTokenValue
   void $ Trace.waitNSlots 1
@@ -103,10 +113,10 @@ returnVoteTrace = do
 
 tallyVotesTrace :: Trace.EmulatorTrace ()
 tallyVotesTrace = do
-  h1 <- Trace.activateContractWallet w1 $ contract
-  h2 <- Trace.activateContractWallet w2 $ contract
-  h3 <- Trace.activateContractWallet w3 $ contract
-  h4 <- Trace.activateContractWallet w4 $ contract
+  h1 <- Trace.activateContractWallet w1 contract
+  h2 <- Trace.activateContractWallet w2 contract
+  h3 <- Trace.activateContractWallet w3 contract
+  h4 <- Trace.activateContractWallet w4 contract
   void $ Trace.waitNSlots 1
   Trace.callEndpoint @"1-setup treasury" h1 $ Ada.lovelaceValueOf 1_000_000_000 <> specialTokenValue
   void $ Trace.waitNSlots 1

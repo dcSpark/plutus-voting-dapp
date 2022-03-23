@@ -15,7 +15,6 @@ import Ledger.Address (PaymentPubKeyHash (..))
 import Ledger.Constraints
 import Ledger.Contexts (TxOut (..))
 import Onchain
-import Plutus.Contract
 import Plutus.Contract as Contract
 import PlutusTx.Prelude hiding ((<>))
 import Utils
@@ -30,7 +29,7 @@ tallyNoQuorum vCfg@VotingConfig {voteAsset} = do
       winningUtxos = Map.fromList winningVotes
 
   winningAddress <- extractAddress (snd $ head winningVotes)
-  let Just voteScriptHash = toValidatorHash $ voteScriptAddress vCfg
+  let voteScriptHash = fromJust $ toValidatorHash $ voteScriptAddress vCfg
 
       -- collect from the winning utxos and the treasury
       txVotesUtxos = collectFromScript winningUtxos ()
@@ -45,23 +44,24 @@ tallyNoQuorum vCfg@VotingConfig {voteAsset} = do
       payWinner (Just winningPkh) _ = mustPayToPubKey (PaymentPubKeyHash winningPkh) totalTreasury
       -- We use an empty datum, but we can require a datum from the voters or lookup an existing datum
       payWinner _ (Just winningScript) = mustPayToOtherScript winningScript unitDatum totalTreasury
+      payWinner _ _ = error ()
 
       txPayWinner = payWinner (toPubKeyHash winningAddress) (toValidatorHash winningAddress)
 
   -- rebuild spent votes
 
   -- TODO properly rebuild datum
-  datums <- mapM (either getDatum' pure) $ map (getDatumOrHash.snd) winningVotes
+  datums <- mapM (either getDatum' pure) $ map (getDatumOrHash . snd) winningVotes
   let rebuildVote ((_, utxo), datum) = mustPayToOtherScript voteScriptHash datum $ txOutValue (toTxOut utxo)
-      txRebuildVotes = foldMap (rebuildVote) $ zip winningVotes datums
+      txRebuildVotes = foldMap rebuildVote $ zip winningVotes datums
 
       -- treasury script constraints
       treasuryUtxosConstraint = txInputTreasury <> txPayWinner
-      treasuryLookups = (typedValidatorLookups $ treasuryScriptInstance vCfg) <> (unspentOutputs treasuryUtxo)
+      treasuryLookups = typedValidatorLookups (treasuryScriptInstance vCfg) <> unspentOutputs treasuryUtxo
 
       -- vote script constraints
       votesUtxosConstraint = txVotesUtxos <> txRebuildVotes
-      votesLookups = (typedValidatorLookups (voteScriptInstance vCfg)) <> (unspentOutputs votesUtxo)
+      votesLookups = typedValidatorLookups (voteScriptInstance vCfg) <> unspentOutputs votesUtxo
 
       -- manually build the different script constraints
       treasurySpend = SomeLookupsAndConstraints treasuryLookups treasuryUtxosConstraint
@@ -75,10 +75,10 @@ returnOtherVote :: VotingConfig -> Contract () MaliciousSchema T.Text ()
 returnOtherVote vCfg = do
   voter <- Contract.ownPaymentPubKeyHash
   voteUtxos <- utxosAt (voteScriptAddress vCfg)
-  datums <- mapM (extractData.snd) $ Map.toList voteUtxos
+  datums <- mapM (extractData . snd) $ Map.toList voteUtxos
   let voterPkh = unPaymentPubKeyHash voter
       voteUtxosList = Map.toList voteUtxos
-      voteTxOut = map (toTxOut.snd) voteUtxosList
+      voteTxOut = map (toTxOut . snd) voteUtxosList
       votesToReturnUtxos = filter (\(_, datum, _) -> voterPkh == owner datum) $ zip3 voteTxOut datums voteUtxosList
       txPayToVoter = Foldable.fold $ map (\(txOut, _, _) -> mustPayToPubKey voter (txOutValue txOut)) votesToReturnUtxos
       votesToCollect = Map.fromList $ map (\(_, _, chainUtxo) -> chainUtxo) votesToReturnUtxos
