@@ -20,6 +20,7 @@ import PlutusTx.Prelude hiding ((<>))
 import Utils
 import Prelude (zip3)
 
+-- Tallying votes without Quorum
 tallyNoQuorum :: VotingConfig -> Contract () MaliciousSchema T.Text ()
 tallyNoQuorum vCfg@VotingConfig {voteAsset} = do
   votesUtxo <- utxosAt (voteScriptAddress vCfg)
@@ -35,8 +36,6 @@ tallyNoQuorum vCfg@VotingConfig {voteAsset} = do
       txVotesUtxos = collectFromScript winningUtxos ()
       txInputTreasury = collectFromScript treasuryUtxo ()
 
-      -- datum = Datum $ PlutusTx.toData $ PlutusTx.toBuiltinData $ VoteDatum{votedFor=votedFor, weight=count, owner=collector}
-
       -- pay the voted amount from the treasury (and keep the remainder in the treasury)
       totalTreasury = foldMap _ciTxOutValue $ Map.elems treasuryUtxo
 
@@ -50,7 +49,6 @@ tallyNoQuorum vCfg@VotingConfig {voteAsset} = do
 
   -- rebuild spent votes
 
-  -- TODO properly rebuild datum
   datums <- mapM (either getDatum' pure) $ map (getDatumOrHash . snd) winningVotes
   let rebuildVote ((_, utxo), datum) = mustPayToOtherScript voteScriptHash datum $ txOutValue (toTxOut utxo)
       txRebuildVotes = foldMap rebuildVote $ zip winningVotes datums
@@ -71,6 +69,7 @@ tallyNoQuorum vCfg@VotingConfig {voteAsset} = do
     tx' <- either (throwError . review _ConstraintResolutionError) pure tx
     submitUnbalancedTx tx'
 
+-- Returns another vote
 returnOtherVote :: VotingConfig -> Contract () MaliciousSchema T.Text ()
 returnOtherVote vCfg = do
   voter <- Contract.ownPaymentPubKeyHash
