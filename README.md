@@ -1,7 +1,7 @@
 <h1 align="center">
   Plutus Voting Smart Contract
 </h1>
-<p align="center">A straight forward example smart contract which enables users to vote for spending funds from a treasury UTXO.</p>
+<p align="center">A smart contract which enables users to vote for spending funds from a treasury UTXO.</p>
 
 <p align="center"><img src="https://img.shields.io/badge/license-mit-blue?style=for-the-badge&logo=none" alt="license" /></p>
 
